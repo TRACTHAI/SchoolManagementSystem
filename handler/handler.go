@@ -13,6 +13,7 @@ type HandlerPort interface {
 	PatchHandlers(c *gin.Context)
 	GetHandlers(c *gin.Context)
 	DeleteHandlers(c *gin.Context)
+	GetAllHandlers(c *gin.Context)
 }
 
 type handlerAdapter struct {
@@ -29,12 +30,13 @@ func (h *handlerAdapter) PostHandlers(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "Error", "message": err.Error()})
 		return
 	}
+	// fmt.Println(parametersInput)
 	err := h.s.PostServices(parametersInput)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "Error", "message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "OK", "message": "Post method sent parameters auccessfully."})
+	c.JSON(http.StatusOK, gin.H{"status": "OK", "message": "Post student auccessfully."})
 }
 
 func (h *handlerAdapter) PatchHandlers(c *gin.Context) {
@@ -47,13 +49,13 @@ func (h *handlerAdapter) PatchHandlers(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "Error", "message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "OK", "message": "Update successfully"})
+	c.JSON(http.StatusOK, gin.H{"status": "OK", "message": "Update student successfully"})
 }
 
 func (h *handlerAdapter) GetHandlers(c *gin.Context) {
-	parameter1 := c.Query("parameter1")
+	parameter1 := c.Query("studentID")
 	if parameter1 == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"status": "Error", "message": "parameter1(get) is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"status": "Error", "message": "studentID(get) is required"})
 		return
 	}
 	dataResponse, err := h.s.GetServices(parameter1)
@@ -61,13 +63,13 @@ func (h *handlerAdapter) GetHandlers(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "Error", "message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "OK", "parameter1Info": dataResponse})
+	c.JSON(http.StatusOK, gin.H{"status": "OK", "studentInfo": dataResponse})
 }
 
 func (h *handlerAdapter) DeleteHandlers(c *gin.Context) {
-	parameter1 := c.Query("parameter1")
+	parameter1 := c.Query("studentID")
 	if parameter1 == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"status": "Error", "message": "parameter1(delete) is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"status": "Error", "message": "studentID(delete) is required"})
 		return
 	}
 	err := h.s.DeleteServices(parameter1)
@@ -75,5 +77,14 @@ func (h *handlerAdapter) DeleteHandlers(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "Error", "message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "OK", "message": "Delete method successfully"})
+	c.JSON(http.StatusOK, gin.H{"status": "OK", "message": "Delete student successfully"})
+}
+
+func (h *handlerAdapter) GetAllHandlers(c *gin.Context) {
+	dataResponse, err := h.s.GetAllServices()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "Error", "message": err})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "OK", "studentInfo": dataResponse})
 }

@@ -18,10 +18,11 @@ func main() {
 	h := handler.NewHanerhandlerAdapter(s)
 
 	router := gin.Default()
-	router.POST("/post", h.PostHandlers)
-	router.PATCH("/patch", h.PatchHandlers)
-	router.GET("/get", h.GetHandlers)
-	router.DELETE("/delete", h.DeleteHandlers)
+	router.POST("/addStudent", h.PostHandlers)
+	router.PATCH("/patchStudent", h.PatchHandlers)
+	router.GET("/getStudent", h.GetHandlers)
+	router.DELETE("/deleteStudent", h.DeleteHandlers)
+	router.GET("/getStudentAll", h.GetAllHandlers)
 
 	err := router.Run(":8888")
 	if err != nil {

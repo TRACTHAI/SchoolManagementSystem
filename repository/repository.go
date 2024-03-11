@@ -13,6 +13,7 @@ type RepositoryPort interface {
 	PatchRepositories(parametersUpdate model.ParametersUpdate, sqlStatement string, placeHolders ...interface{}) error
 	GetRepositories(paramerter1 string) (model.InfoResponse, error)
 	DeleteRepositories(parameter1 string) error
+	GetAllReopsitories() ([]model.InfoResponseAll, error)
 }
 
 type repositoryAdapter struct {
@@ -25,19 +26,19 @@ func NewRepositoryAdapter(db *sql.DB) RepositoryPort {
 
 func (r *repositoryAdapter) PostRepositories(parametersInput model.ParametersInput) error {
 	var exists1 string
-	err := r.db.QueryRow("SELECT parameter1 FROM exampleapis WHERE parameter1 = $1", parametersInput.Parameter1).Scan(&exists1)
+	err := r.db.QueryRow("SELECT firstname FROM student WHERE firstname = $1", parametersInput.Firstname).Scan(&exists1)
 	if err == nil {
 		log.Println(err)
-		return errors.New("parameter1 already exists")
+		return errors.New("student already exists")
 	}
 	if err != sql.ErrNoRows {
 		log.Println(err)
 		return errors.New("unexpected error")
 	}
-	_, err = r.db.Exec("INSERT INTO exampleapis (parameter1, parameter2, parameter3) VALUES ($1, $2 ,$3)", parametersInput.Parameter1, parametersInput.Parameter2, parametersInput.Parameter3)
+	_, err = r.db.Exec("INSERT INTO student (gender, firstname, lastname, birthdate, nationality, ethnicity) VALUES ($1, $2 ,$3, $4, $5, $6)", parametersInput.Gender, parametersInput.Firstname, parametersInput.Lastname, parametersInput.BirthDate, parametersInput.Nationality, parametersInput.Ethnicity)
 	if err != nil {
 		log.Println(err)
-		return errors.New("failed to insert parameter")
+		return errors.New("failed to insert parameter(student)")
 	}
 	return nil
 }
@@ -62,7 +63,7 @@ func (r *repositoryAdapter) PatchRepositories(parametersUpdate model.ParametersU
 	}
 	fmt.Println(rowChangedPatch)
 	if rowChangedPatch == 0 {
-		return errors.New("parameter1 does not match")
+		return errors.New("studentID(patch) does not match")
 	}
 	return nil
 }
@@ -70,11 +71,11 @@ func (r *repositoryAdapter) PatchRepositories(parametersUpdate model.ParametersU
 func (r *repositoryAdapter) GetRepositories(parameter1 string) (model.InfoResponse, error) {
 	// var infoResponse []model.InfoResponse // incase many row
 	var infoResponse model.InfoResponse
-	err := r.db.QueryRow("SELECT * FROM exampleapis WHERE parameter1 = $1", parameter1).Scan(&infoResponse.ID, &infoResponse.Parameter1, &infoResponse.Parameter2, &infoResponse.Parameter3)
+	err := r.db.QueryRow("SELECT * FROM student WHERE student_id = $1", parameter1).Scan(&infoResponse.StudentID, &infoResponse.Gender, &infoResponse.Firstname, &infoResponse.Lastname, &infoResponse.BirthDate, &infoResponse.Nationality, &infoResponse.Ethnicity)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Println("No rows were found.")
-			return model.InfoResponse{}, errors.New("parameter1 does not match")
+			return model.InfoResponse{}, errors.New("studentID(get) does not match")
 		}
 		log.Println(err)
 		return model.InfoResponse{}, err
@@ -89,7 +90,7 @@ func (r *repositoryAdapter) DeleteRepositories(parameter1 string) error {
 	// 	log.Println(err)
 	// 	return errors.New("parameter1 does not match")
 	// }
-	result, err := r.db.Exec("DELETE FROM exampleapis WHERE parameter1 = $1", parameter1)
+	result, err := r.db.Exec("DELETE FROM student WHERE student_id = $1", parameter1)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -101,7 +102,31 @@ func (r *repositoryAdapter) DeleteRepositories(parameter1 string) error {
 	}
 	fmt.Println(rowChangedGet)
 	if rowChangedGet == 0 {
-		return errors.New("parameter1 does not match")
+		return errors.New("studentID(delete) does not match")
 	}
 	return nil
+}
+
+func (r *repositoryAdapter) GetAllReopsitories() ([]model.InfoResponseAll, error) {
+	var infoResponses []model.InfoResponseAll
+	rows, err := r.db.Query("SELECT * FROM student")
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var infoResponse model.InfoResponseAll
+		err := rows.Scan(&infoResponse.StudentID, &infoResponse.Gender, &infoResponse.Firstname, &infoResponse.Lastname, &infoResponse.BirthDate, &infoResponse.Nationality, &infoResponse.Ethnicity)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		infoResponses = append(infoResponses, infoResponse)
+	}
+	if err = rows.Err(); err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return infoResponses, nil
 }
