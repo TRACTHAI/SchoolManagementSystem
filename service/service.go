@@ -4,6 +4,7 @@ import (
 	"errors"
 	"exampleAPIs/model"
 	"exampleAPIs/repository"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -129,7 +130,8 @@ func (s *serviceAdapter) PatchServices(parametersUpdate model.ParametersUpdate) 
 	sqlStatement = strings.TrimSuffix(sqlStatement, ",")
 	sqlStatement += " WHERE student_id = $1;"
 	placeholders = append([]interface{}{parametersUpdate.StudentID}, placeholders...)
-
+	fmt.Println(sqlStatement)
+	fmt.Println(placeholders)
 	err := s.r.PatchRepositories(parametersUpdate, sqlStatement, placeholders...)
 	if err != nil {
 		log.Println(err)

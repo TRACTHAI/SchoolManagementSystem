@@ -3,6 +3,7 @@ package handler
 import (
 	"exampleAPIs/model"
 	"exampleAPIs/service"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -30,7 +31,7 @@ func (h *handlerAdapter) PostHandlers(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "Error", "message": err.Error()})
 		return
 	}
-	// fmt.Println(parametersInput)
+	fmt.Println(parametersInput)
 	err := h.s.PostServices(parametersInput)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "Error", "message": err.Error()})

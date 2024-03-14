@@ -14,6 +14,7 @@ func main() {
 	db := database.Postgresql()
 	defer db.Close()
 	r := repository.NewRepositoryAdapter(db)
+	// fmt.Println(db)
 	s := service.NewServiceAdapter(r)
 	h := handler.NewHanerhandlerAdapter(s)
 

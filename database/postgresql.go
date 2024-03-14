@@ -15,10 +15,15 @@ func Postgresql() *sql.DB {
 	if err != nil {
 		log.Fatal("cannot load .env file: ", err)
 	}
-
+	fmt.Println(err)
 	db, err := sql.Open("postgres", os.Getenv("postgresql"))
 	if err != nil {
 		panic(err.Error())
+	}
+	err = db.Ping()
+	if err != nil {
+		log.Fatalf("Error on connecting to database: %s\n", err.Error())
+		// add additional error response
 	}
 	fmt.Println("Connected to PostgreSQL")
 	return db
