@@ -5,6 +5,7 @@ import (
 	"exampleAPIs/handler"
 	"exampleAPIs/repository"
 	"exampleAPIs/service"
+	"exampleAPIs/utility"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,6 +14,7 @@ func main() {
 	//db := database.Mariadb() // not connected
 	db := database.Postgresql()
 	defer db.Close()
+	utility.CountTables(db)
 	r := repository.NewRepositoryAdapter(db)
 	// fmt.Println(db)
 	s := service.NewServiceAdapter(r)
