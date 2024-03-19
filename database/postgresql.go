@@ -2,6 +2,8 @@ package database
 
 import (
 	"database/sql"
+	"encoding/base64"
+	"exampleAPIs/utility/decrypt"
 	"fmt"
 	"log"
 	"os"
@@ -11,20 +13,74 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func Postgresql() *sql.DB {
+// func Postgresql() *sql.DB { // 3_15_2024 friday we going to add more error responses for more additional client infomation
+// 	err := godotenv.Load()
+// 	if err != nil {
+// 		log.Fatal("cannot load .env file: ", err)
+// 	}
+
+// 	db, err := sql.Open("postgres", os.Getenv("postgresql"))
+// 	if err != nil {
+// 		panic(err.Error())
+// 	}
+// 	err = db.Ping()
+// 	if err != nil {
+// 		log.Fatalf("Error on connecting to database: %s\n", err.Error())
+// 	}
+// 	fmt.Println("Connected to PostgreSQL")
+// 	return db
+// }
+
+func Postgresql() *sql.DB { // 3_15_2024 friday we going to add more error responses for more additional client infomation
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("cannot load .env file: ", err)
 	}
-	// fmt.Println(err)
-	db, err := sql.Open("postgres", os.Getenv("postgresql"))
+	encryptedConnectionString := os.Getenv("postgresql")
+	if encryptedConnectionString == "" {
+		log.Fatal("No PostgreSQL connection information in .env provided")
+	}
+	splitURL := strings.Split(encryptedConnectionString, "://")
+	splitCredentials := strings.SplitN(splitURL[1], ":", 2)
+	splitPasswordAndHost := strings.SplitN(splitCredentials[1], "@", 2)
+	fmt.Println("splitURL", splitURL)
+	fmt.Println("splitCredentials", splitCredentials)
+	fmt.Println("splitPasswordAndHost", splitPasswordAndHost)
+	encryptedUsername := splitCredentials[0]
+	encryptedPassword := splitPasswordAndHost[0]
+	fmt.Println("encryptedUsername", encryptedUsername)
+	fmt.Println("encryptedPassword", encryptedPassword)
+	cipherUsernameEnv, err := decrypt.Detokenize(encryptedUsername)
 	if err != nil {
-		panic(err.Error())
+		log.Fatalf("Cannot decrypt username: %s\n", err)
+	}
+	usernameEnv, err := base64.StdEncoding.DecodeString(cipherUsernameEnv)
+	if err != nil {
+		log.Fatalf("Cannot decode username: %s\n", err)
+	}
+	cipherPasswordEnv, err := decrypt.Detokenize(encryptedPassword)
+	if err != nil {
+		log.Fatalf("Cannot decrypt password: %s\n", err)
+	}
+	passwordEnv, err := base64.StdEncoding.DecodeString(cipherPasswordEnv)
+	if err != nil {
+		log.Fatalf("Cannot decode password: %s\n", err)
+	}
+	fmt.Println(usernameEnv)
+	// decryptedConnectionString := fmt.Sprintf("postgresql://%s:%s@%s/database?sslmode=disable", usernameEnv, passwordEnv, splitPasswordAndHost[1])
+	decryptedConnectionString := fmt.Sprintf("postgresql://%s:%s@%s", usernameEnv, passwordEnv, splitPasswordAndHost[1])
+	// db, err := sql.Open("postgres", os.Getenv("postgresql"))
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+	// fmt.Println("decryptedConnectionString", decryptedConnectionString)
+	db, err := sql.Open("postgres", decryptedConnectionString)
+	if err != nil {
+		log.Fatalf("Error on opening database: %s\n", err)
 	}
 	// err = db.Ping()
 	// if err != nil {
 	// 	log.Fatalf("Error on connecting to database: %s\n", err.Error())
-	// 	// add additional error response
 	// }
 	err = db.Ping()
 	if err != nil {
@@ -43,3 +99,21 @@ func Postgresql() *sql.DB {
 	// fmt.Println("Connected to PostgreSQL")
 	return db
 }
+
+// func FunctionDetokenize() error {
+// 	cipher := "fuC4py8/WUPguZg3"
+// 	plain, err := utility.Detokenize(cipher)
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		return
+// 	}
+
+// 	// Decode Base64
+// 	decodedPlain, err := base64.StdEncoding.DecodeString(plain)
+// 	if err != nil {
+// 		fmt.Println("Error decoding Base64:", err)
+// 		return
+// 	}
+
+// 	return decodedPlain, err
+// }
